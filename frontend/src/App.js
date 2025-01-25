@@ -5,7 +5,6 @@ import { FaComment, FaEnvelope, FaHeart } from "react-icons/fa";
 import { BrowserRouter as Router, Route, Routes, Link } from "react-router-dom";
 import PostForm from "./components/PostForm"; // Import the PostForm component
 
-
 function App() {
   const [posts, setPosts] = useState([]); // Store posts
   const [category, setCategory] = useState("All"); // Active category
@@ -159,7 +158,6 @@ function App() {
             }
           />
           <Route path="/create" element={<PostForm />} />
-          
         </Routes>
       </div>
     </Router>
