@@ -3,9 +3,9 @@ import dotenv from 'dotenv';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import userRouter from './routes/userRouter.js';
+import postRouter from './routes/postRouter.js'; // Import postRouter
 import { dbConnection } from './database/dbConnection.js';
 import { errorMiddleware } from './middlewares/error.js';
-
 
 const app = express();
 dotenv.config({ path: "./config/config.env" });
@@ -23,7 +23,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 app.use("/api/v1/user", userRouter);
-
+app.use("/api/v1/posts", postRouter); // Add the postRouter here
 
 dbConnection();
 
