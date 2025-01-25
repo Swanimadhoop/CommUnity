@@ -1,23 +1,40 @@
-// PostForm.js
 import React, { useState } from "react";
+import axios from "axios"; // Ensure axios is imported
+import { useNavigate } from "react-router-dom"; // For redirection
 
 const PostForm = () => {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState("All");
+  const [message, setMessage] = useState(""); // State for success message
+  const navigate = useNavigate(); // React Router navigation hook
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     const newPost = {
       title,
       description,
       category,
     };
 
-    console.log("New Post Created:", newPost);
-    // Send this new post to the backend, for example:
-    // axios.post('http://localhost:5000/api/posts', newPost);
+    try {
+      // Send the post data to the backend
+      const response = await axios.post("http://localhost:4000/api/v1/posts", newPost);
+      
+      if (response.status === 201) {
+        // If the post is successfully saved, show the success message
+        setMessage("Post successfully created!");
+        
+        // Redirect to the post feed page after 1.5 seconds
+        setTimeout(() => {
+          navigate("/");
+        }, 1500);
+      }
+    } catch (error) {
+      console.error("Error creating post:", error);
+      setMessage("An error occurred. Please try again.");
+    }
   };
 
   return (
@@ -82,6 +99,18 @@ const PostForm = () => {
           Submit Post
         </button>
       </form>
+
+      {/* Display success/error message */}
+      {message && (
+        <p
+          style={{
+            marginTop: "10px",
+            color: message.includes("successfully") ? "green" : "red",
+          }}
+        >
+          {message}
+        </p>
+      )}
     </div>
   );
 };
