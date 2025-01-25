@@ -14,7 +14,7 @@ function App() {
   useEffect(() => {
     const fetchPosts = async () => {
       try {
-        const response = await axios.get("http://localhost:4000/api/posts");
+        const response = await axios.get("http://localhost:4000/api/v1/posts");
         setPosts(response.data);
       } catch (error) {
         console.error("Error fetching posts:", error);
@@ -138,7 +138,8 @@ function App() {
                         }}
                       >
                         <h3>{post.title}</h3>
-                        <p>Category: {post.category}</p>
+                        <p>{post.description}</p>
+                        {/* <p>Category: {post.category}</p> */}
                         <div style={{ display: "flex", justifyContent: "space-between", marginTop: "10px" }}>
                           <button style={{ background: "none", border: "none", cursor: "pointer" }}>
                             <FaComment /> Comment

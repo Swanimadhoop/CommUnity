@@ -6,25 +6,37 @@ const PostFeed = () => {
   const [category, setCategory] = useState('All');
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
-  // Fetch posts whenever the category or login state changes
+  // Fetch posts whenever the category changes
   useEffect(() => {
     fetchPosts();
   }, [category]);
 
   const fetchPosts = async () => {
-    const response = await axios.get(`http://localhost:5000/api/posts`);
-    setPosts(response.data);
+    try {
+      // Fetch posts from the backend
+      const response = await axios.get('http://localhost:4000/api/v1/posts');
+      const allPosts = response.data;
+
+      // Filter posts by selected category
+      const filteredPosts =
+        category === 'All'
+          ? allPosts
+          : allPosts.filter((post) => post.category === category);
+      
+      setPosts(filteredPosts);
+    } catch (error) {
+      console.error('Error fetching posts:', error);
+    }
   };
 
-  const handleCategoryChange = (category) => {
-    setCategory(category);
+  const handleCategoryChange = (selectedCategory) => {
+    setCategory(selectedCategory);
   };
 
   const handleLogin = () => {
     setIsLoggedIn(true); // Simulating login for now
   };
 
-  // Inline styles for components
   const postStyles = {
     border: '1px solid #ddd',
     padding: '20px',
@@ -56,41 +68,43 @@ const PostFeed = () => {
 
   return (
     <div style={{ padding: '20px' }}>
-      {/* Login button (visible if not logged in) */}
       {!isLoggedIn ? (
         <button style={buttonStyles} onClick={handleLogin}>Login</button>
       ) : (
         <>
-          {/* Category buttons */}
           <div>
             <button style={buttonStyles} onClick={() => handleCategoryChange('All')}>All</button>
-            <button style={buttonStyles} onClick={() => handleCategoryChange('Lend/Borrow')}>Lend/Borrow</button>
+            <button style={buttonStyles} onClick={() => handleCategoryChange('Lend Items')}>Lend Items</button>
             <button style={buttonStyles} onClick={() => handleCategoryChange('Services')}>Services</button>
             <button style={buttonStyles} onClick={() => handleCategoryChange('General')}>General</button>
             <button style={buttonStyles} onClick={() => handleCategoryChange('Pay for Work')}>Pay for Work</button>
           </div>
 
-          {/* "Post a Request" button */}
-          <button style={buttonStyles} onClick={() => alert('Post request')}>Post a Request</button>
+          <button
+            style={buttonStyles}
+            onClick={() => alert('Redirect to Post Form')}
+          >
+            Post a Request
+          </button>
         </>
       )}
 
-      {/* Post feed */}
       <div>
-        {posts.map(post => (
-          <div key={post._id} style={postStyles}>
-            <h3>{post.title}</h3>
-            <p>{post.description}</p>
-            <p><strong>Category:</strong> {post.category}</p>
-
-            {/* Action buttons: Comment, Chat, Love */}
-            <div>
-              <button style={actionButtonStyles}>Comment</button>
-              <button style={actionButtonStyles}>Chat</button>
-              <button style={actionButtonStyles}>❤️</button>
+        {posts.length > 0 ? (
+          posts.map((post) => (
+            <div key={post._id} style={postStyles}>
+              <h3>{post.title}</h3>
+              <h5>{post.description}</h5>
+              <div>
+                <button style={actionButtonStyles}>Comment</button>
+                <button style={actionButtonStyles}>Chat</button>
+                <button style={actionButtonStyles}>❤️</button>
+              </div>
             </div>
-          </div>
-        ))}
+          ))
+        ) : (
+          <p>No posts available in this category.</p>
+        )}
       </div>
     </div>
   );
