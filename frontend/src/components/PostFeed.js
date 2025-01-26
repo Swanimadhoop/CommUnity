@@ -1,20 +1,18 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { FaComment, FaHeart, FaEnvelope } from "react-icons/fa";
-import ChatMessages from "./ChatMessages"; // Import ChatMessages component
-
+//import ChatMessages from "./ChatMessages"; // Import ChatMessages component
 
 const PostFeed = ({ isLoggedIn }) => {
   const [posts, setPosts] = useState([]);
   const [category, setCategory] = useState("All");
   const [comments, setComments] = useState({});
   const [newComment, setNewComment] = useState({});
-  const [selectedPostId, setSelectedPostId] = useState(null);
   const [commentingPostId, setCommentingPostId] = useState(null);
   const [lovedPosts, setLovedPosts] = useState({});
   const [viewMoreComments, setViewMoreComments] = useState({});
-  const [showChat, setShowChat] = useState(false);
-  const [selectedPost, setSelectedPost] = useState(null); // To track the selected post for chat
+  //const [showChat, setShowChat] = useState(false);
+  const [selectedPostId, setSelectedPostId] = useState(null);
 
   // Fetch posts from the backend
   useEffect(() => {
@@ -25,6 +23,8 @@ const PostFeed = ({ isLoggedIn }) => {
     try {
       const response = await axios.get("http://localhost:4000/api/v1/posts");
       const allPosts = response.data;
+
+      // Filter posts by category
       const filteredPosts =
         category === "All"
           ? allPosts
@@ -32,6 +32,7 @@ const PostFeed = ({ isLoggedIn }) => {
 
       setPosts(filteredPosts);
 
+      // Initialize comments state for each post
       const initialComments = {};
       filteredPosts.forEach((post) => {
         initialComments[post._id] = post.comments || [];
@@ -41,44 +42,6 @@ const PostFeed = ({ isLoggedIn }) => {
       console.error("Error fetching posts:", error);
     }
   };
-
-  const handleChatButtonClick = (postId) => {
-    setShowChat(true);
-    setSelectedPostId(postId);  // Set the selected postId for chat
-  };
-  
-  return (
-    <div>
-      {/* Post Feed */}
-      {posts.length > 0 ? (
-        posts.map((post) => (
-          <div key={post._id} style={{ border: "1px solid #ddd", padding: "20px", marginBottom: "10px", borderRadius: "5px" }}>
-            <h3>{post.title}</h3>
-            <p>{post.description}</p>
-  
-            {/* Comment and Chat Buttons */}
-            <div style={{ display: "flex", justifyContent: "space-between", marginTop: "10px" }}>
-              <button onClick={() => handleCommentButtonClick(post._id)} style={{ background: "none", border: "none", cursor: "pointer" }}>
-                <FaComment /> Comment
-              </button>
-              <button onClick={() => handleChatButtonClick(post._id)} style={{ background: "none", border: "none", cursor: "pointer" }}>
-                <FaEnvelope /> Chat
-              </button>
-              <button onClick={() => handleHeartClick(post._id)} style={{ background: "none", border: "none", cursor: "pointer" }}>
-                <FaHeart /> Love
-              </button>
-            </div>
-          </div>
-        ))
-      ) : (
-        <p>No posts available in this category.</p>
-      )}
-  
-      {/* Chat Component */}
-      {showChat && <ChatMessages postId={selectedPostId} closeChat={() => setShowChat(false)} />}
-    </div>
-  );
-  
 
   const handleCategoryChange = (selectedCategory) => {
     setCategory(selectedCategory);
@@ -93,6 +56,7 @@ const PostFeed = ({ isLoggedIn }) => {
         createdAt: new Date().toISOString(),
       };
 
+      // Optimistically update comments UI
       setComments((prevComments) => ({
         ...prevComments,
         [postId]: [...(prevComments[postId] || []), tempComment],
@@ -105,6 +69,8 @@ const PostFeed = ({ isLoggedIn }) => {
         );
 
         const savedComment = response.data;
+
+        // Replace temporary comment with the saved comment
         setComments((prevComments) => ({
           ...prevComments,
           [postId]: prevComments[postId].map((c) =>
@@ -118,10 +84,6 @@ const PostFeed = ({ isLoggedIn }) => {
       setNewComment((prev) => ({ ...prev, [postId]: "" }));
       setCommentingPostId(null);
     }
-  };
-
-  const handleCommentButtonClick = (postId) => {
-    setCommentingPostId(postId);
   };
 
   const handleInputChange = (postId, value) => {
@@ -145,10 +107,10 @@ const PostFeed = ({ isLoggedIn }) => {
     }));
   };
 
-  const handleChatClick = (postId) => {
-    setShowChat(true);
-    setSelectedPost(postId);
-  };
+  // const handleChatButtonClick = (postId) => {
+  //   setSelectedPostId(postId);
+  //   setShowChat(true);
+  // };
 
   return (
     <div style={{ padding: "20px" }}>
@@ -186,15 +148,12 @@ const PostFeed = ({ isLoggedIn }) => {
                 padding: "20px",
                 marginBottom: "10px",
                 borderRadius: "5px",
-                display: "flex",
-                flexDirection: "column",
-                justifyContent: "space-between",
               }}
             >
               <h3>{post.title}</h3>
               <p>{post.description}</p>
 
-              {/* Comment Section */}
+              {/* Action Buttons */}
               <div
                 style={{
                   display: "flex",
@@ -202,66 +161,58 @@ const PostFeed = ({ isLoggedIn }) => {
                   marginTop: "10px",
                 }}
               >
-                {/* Comment Button */}
                 <button
-                  style={{
-                    background: "none",
-                    border: "none",
-                    cursor: "pointer",
-                  }}
-                  onClick={() => handleCommentButtonClick(post._id)}
+                  onClick={() => setCommentingPostId(post._id)}
+                  style={{ background: "none", border: "none", cursor: "pointer" }}
                 >
                   <FaComment /> Comment
                 </button>
-
                 <button
-                  onClick={() => handleChatClick(post._id)}
+                  //onClick={() => handleChatButtonClick(post._id)}
                   style={{ background: "none", border: "none", cursor: "pointer" }}
                 >
                   <FaEnvelope /> Chat
                 </button>
-
-                {/* Love Button */}
                 <button
+                  onClick={() => handleHeartClick(post._id)}
                   style={{
                     background: "none",
                     border: "none",
                     cursor: "pointer",
                     color: lovedPosts[post._id] ? "red" : "black",
                   }}
-                  onClick={() => handleHeartClick(post._id)}
                 >
                   <FaHeart /> Love
                 </button>
               </div>
 
-              {/* Comments */}
+              {/* Comments Section */}
               <div>
                 {comments[post._id] && comments[post._id].length > 0 ? (
                   <>
-                    {/* Show only first 2 comments initially */}
-                    {(viewMoreComments[post._id] ? comments[post._id] : comments[post._id].slice(0, 2)).map(
-                      (comment, index) => (
-                        <div key={index}>
-                          <p>{comment.comment}</p>
-                        </div>
-                      )
-                    )}
+                    {(viewMoreComments[post._id]
+                      ? comments[post._id]
+                      : comments[post._id].slice(0, 2)
+                    ).map((comment, index) => (
+                      <div key={index}>
+                        <p>{comment.comment}</p>
+                      </div>
+                    ))}
 
-                    {/* "View More" Button if more than 2 comments */}
-                    {comments[post._id].length > 2 && !viewMoreComments[post._id] && (
-                      <button
-                        onClick={() => handleViewMoreClick(post._id)}
-                        style={{
-                          background: "none",
-                          border: "none",
-                          color: "#007BFF",
-                          cursor: "pointer",
-                        }}
-                      >
-                        View More Comments
-                      </button>
-                    )}
+                    {comments[post._id].length > 2 &&
+                      !viewMoreComments[post._id] && (
+                        <button
+                          onClick={() => handleViewMoreClick(post._id)}
+                          style={{
+                            background: "none",
+                            border: "none",
+                            color: "#007BFF",
+                            cursor: "pointer",
+                          }}
+                        >
+                          View More Comments
+                        </button>
+                      )}
                   </>
                 ) : (
                   <p>No comments yet.</p>
@@ -304,10 +255,10 @@ const PostFeed = ({ isLoggedIn }) => {
         )}
       </div>
 
-      {/* Show Chat if chat is triggered */}
-      {showChat && selectedPost && (
-        <ChatMessages postId={selectedPost} closeChat={() => setShowChat(false)} />
-      )}
+      {/* Chat Component
+      {showChat && selectedPostId && (
+        <ChatMessages postId={selectedPostId} closeChat={() => setShowChat(false)} />
+      )} */}
     </div>
   );
 };
