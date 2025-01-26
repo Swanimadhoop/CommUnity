@@ -4,6 +4,7 @@ import mongoose from "mongoose";
 const commentSchema = new mongoose.Schema({
   
   comment: {
+
     type: String,
     required: true,
   },
@@ -13,23 +14,29 @@ const commentSchema = new mongoose.Schema({
   },
 });
 
-const postSchema = new mongoose.Schema({
-  title: {
-    type: String,
-    required: true,
+
+
+// Define the main schema for posts
+const postSchema = new mongoose.Schema(
+  {
+    title: {
+      type: String,
+      required: true,
+    },
+    description: {
+      type: String,
+      required: true,
+    },
+    category: {
+      type: String,
+      required: true,
+    },
+    comments: [commentSchema], // Embedding comments into the post schema
   },
-  description: {
-    type: String,
-    required: true,
-  },
-  category: {
-    type: String,
-    required: true,
-  },
-  comments: [commentSchema],
-}, {
-  timestamps: true, // To keep track of when the post was created or updated
-});
+  {
+    timestamps: true, // To keep track of when the post was created or updated
+  }
+);
 
 const Post = mongoose.model("Post", postSchema);
 

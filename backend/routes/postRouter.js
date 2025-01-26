@@ -7,6 +7,7 @@ const router = express.Router();
 // Define routes
 router.get("/", getPosts); // Route to fetch posts
 router.post("/", createPost); // Route to create a post
-router.route("/:postId/comment").post(addComment);
+router.route("/:postId/comment").post(addComment); // Route to add a comment to a post
+
 
 export default router;

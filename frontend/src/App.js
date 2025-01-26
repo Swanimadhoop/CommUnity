@@ -23,6 +23,7 @@ function App() {
     fetchPosts();
   }, []);
 
+
   return (
     <Router>
       <div style={{ padding: "20px", fontFamily: "Arial, sans-serif" }}>
@@ -93,6 +94,7 @@ function App() {
             </Link>
           </>
         )}
+
 
         <Routes>
           <Route path="/" element={<PostFeed isLoggedIn={isLoggedIn} posts={posts} />} />

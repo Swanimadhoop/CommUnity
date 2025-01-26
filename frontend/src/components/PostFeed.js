@@ -38,6 +38,7 @@ const PostFeed = ({ isLoggedIn }) => {
 
       try {
         const response = await axios.post(
+
           `http://localhost:4000/api/v1/posts/${postId}/comments`,
           { comment: commentText }
         );

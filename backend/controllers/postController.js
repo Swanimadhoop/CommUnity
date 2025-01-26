@@ -37,6 +37,7 @@ export const createPost = async (req, res) => {
 
 // Add a comment to a post
 export const addComment = async (req, res) => {
+
   try {
     const { postId } = req.params; // Extract the post ID from the URL
     const {  comment } = req.body; // Extract user and comment from the request body
@@ -56,3 +57,4 @@ export const addComment = async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 };
+   
