@@ -40,6 +40,7 @@ const PostForm = () => {
   return (
     <div style={{ padding: "20px" }}>
       <h2>Create New Post</h2>
+      {message && <p>{message}</p>} {/* Display success or error message */}
       <form onSubmit={handleSubmit}>
         <div>
           <label>
