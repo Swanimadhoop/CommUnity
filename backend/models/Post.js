@@ -4,6 +4,7 @@ import mongoose from "mongoose";
 const commentSchema = new mongoose.Schema({
   
   comment: {
+
     type: String,
     required: true,
   },
@@ -12,6 +13,8 @@ const commentSchema = new mongoose.Schema({
     default: Date.now,
   },
 });
+
+
 
 // Define the main schema for posts
 const postSchema = new mongoose.Schema(

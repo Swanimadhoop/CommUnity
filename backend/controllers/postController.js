@@ -37,22 +37,24 @@ export const createPost = async (req, res) => {
 
 // Add a comment to a post
 export const addComment = async (req, res) => {
-    try {
-      const { postId } = req.params; // Extract the post ID from the URL
-      const {  comment } = req.body; // Extract user and comment from the request body
-  
-      // Find the post by ID
-      const post = await Post.findById(postId);
-      if (!post) {
-        return res.status(404).json({ success: false, message: "Post not found" });
-      }
-  
-      // Add the new comment to the post's comments array
-      post.comments.push({  comment });
-      await post.save();
-  
-      res.status(200).json({ success: true, message: "Comment added successfully", post });
-    } catch (error) {
-      res.status(500).json({ success: false, message: error.message });
+
+  try {
+    const { postId } = req.params; // Extract the post ID from the URL
+    const {  comment } = req.body; // Extract user and comment from the request body
+
+    // Find the post by ID
+    const post = await Post.findById(postId);
+    if (!post) {
+      return res.status(404).json({ success: false, message: "Post not found" });
     }
-  };
+
+    // Add the new comment to the post's comments array
+    post.comments.push({  comment });
+    await post.save();
+
+    res.status(200).json({ success: true, message: "Comment added successfully", post });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+   
