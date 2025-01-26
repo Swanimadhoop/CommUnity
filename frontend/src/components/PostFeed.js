@@ -1,64 +1,25 @@
-// PostFeed.js
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { FaComment, FaHeart } from "react-icons/fa";
+import { FaComment, FaHeart, FaEnvelope } from "react-icons/fa";
+import ChatMessages from "./ChatMessages"; // Import ChatMessages component
+
 
 const PostFeed = ({ isLoggedIn }) => {
   const [posts, setPosts] = useState([]);
   const [category, setCategory] = useState("All");
   const [comments, setComments] = useState({});
   const [newComment, setNewComment] = useState({});
+  const [selectedPostId, setSelectedPostId] = useState(null);
   const [commentingPostId, setCommentingPostId] = useState(null);
   const [lovedPosts, setLovedPosts] = useState({});
   const [viewMoreComments, setViewMoreComments] = useState({});
+  const [showChat, setShowChat] = useState(false);
+  const [selectedPost, setSelectedPost] = useState(null); // To track the selected post for chat
 
+  // Fetch posts from the backend
   useEffect(() => {
     fetchPosts();
   }, [category]);
-
-  
-
-  const handleCategoryChange = (selectedCategory) => {
-    setCategory(selectedCategory);
-  };
-
-  const handleAddComment = async (postId) => {
-    const commentText = newComment[postId]?.trim();
-    if (commentText !== "") {
-      const tempComment = {
-        comment: commentText,
-        _id: Date.now(),
-        createdAt: new Date().toISOString(),
-      };
-
-      setComments((prevComments) => ({
-        ...prevComments,
-        [postId]: [...(prevComments[postId] || []), tempComment],
-      }));
-
-      try {
-        const response = await axios.post(
-          'http://localhost:4000/api/v1/posts/${postId}/comments',
-          { comment: commentText }
-        );
-
-        const savedComment = response.data;
-        setComments((prevComments) => ({
-          ...prevComments,
-          [postId]: prevComments[postId].map((c) =>
-            c._id === tempComment._id ? savedComment : c
-          ),
-        }));
-      } catch (error) {
-        console.error("Error adding comment:", error);
-      }
-
-      setNewComment((prev) => ({ ...prev, [postId]: "" }));
-      setCommentingPostId(null);
-    }
-
-    
-  };
 
   const fetchPosts = async () => {
     try {
@@ -81,12 +42,87 @@ const PostFeed = ({ isLoggedIn }) => {
     }
   };
 
+  const handleChatButtonClick = (postId) => {
+    setShowChat(true);
+    setSelectedPostId(postId);  // Set the selected postId for chat
+  };
+  
+  return (
+    <div>
+      {/* Post Feed */}
+      {posts.length > 0 ? (
+        posts.map((post) => (
+          <div key={post._id} style={{ border: "1px solid #ddd", padding: "20px", marginBottom: "10px", borderRadius: "5px" }}>
+            <h3>{post.title}</h3>
+            <p>{post.description}</p>
+  
+            {/* Comment and Chat Buttons */}
+            <div style={{ display: "flex", justifyContent: "space-between", marginTop: "10px" }}>
+              <button onClick={() => handleCommentButtonClick(post._id)} style={{ background: "none", border: "none", cursor: "pointer" }}>
+                <FaComment /> Comment
+              </button>
+              <button onClick={() => handleChatButtonClick(post._id)} style={{ background: "none", border: "none", cursor: "pointer" }}>
+                <FaEnvelope /> Chat
+              </button>
+              <button onClick={() => handleHeartClick(post._id)} style={{ background: "none", border: "none", cursor: "pointer" }}>
+                <FaHeart /> Love
+              </button>
+            </div>
+          </div>
+        ))
+      ) : (
+        <p>No posts available in this category.</p>
+      )}
+  
+      {/* Chat Component */}
+      {showChat && <ChatMessages postId={selectedPostId} closeChat={() => setShowChat(false)} />}
+    </div>
+  );
+  
 
+  const handleCategoryChange = (selectedCategory) => {
+    setCategory(selectedCategory);
+  };
+
+  const handleAddComment = async (postId) => {
+    const commentText = newComment[postId]?.trim();
+    if (commentText !== "") {
+      const tempComment = {
+        comment: commentText,
+        _id: Date.now(),
+        createdAt: new Date().toISOString(),
+      };
+
+      setComments((prevComments) => ({
+        ...prevComments,
+        [postId]: [...(prevComments[postId] || []), tempComment],
+      }));
+
+      try {
+        const response = await axios.post(
+          `http://localhost:4000/api/v1/posts/${postId}/comments`,
+          { comment: commentText }
+        );
+
+        const savedComment = response.data;
+        setComments((prevComments) => ({
+          ...prevComments,
+          [postId]: prevComments[postId].map((c) =>
+            c._id === tempComment._id ? savedComment : c
+          ),
+        }));
+      } catch (error) {
+        console.error("Error adding comment:", error);
+      }
+
+      setNewComment((prev) => ({ ...prev, [postId]: "" }));
+      setCommentingPostId(null);
+    }
+  };
 
   const handleCommentButtonClick = (postId) => {
     setCommentingPostId(postId);
   };
-
 
   const handleInputChange = (postId, value) => {
     setNewComment((prev) => ({
@@ -94,8 +130,6 @@ const PostFeed = ({ isLoggedIn }) => {
       [postId]: value,
     }));
   };
-
-  
 
   const handleHeartClick = (postId) => {
     setLovedPosts((prevLovedPosts) => ({
@@ -109,6 +143,11 @@ const PostFeed = ({ isLoggedIn }) => {
       ...prev,
       [postId]: true,
     }));
+  };
+
+  const handleChatClick = (postId) => {
+    setShowChat(true);
+    setSelectedPost(postId);
   };
 
   return (
@@ -175,7 +214,14 @@ const PostFeed = ({ isLoggedIn }) => {
                   <FaComment /> Comment
                 </button>
 
-                {/* Love Button moved to the opposite side */}
+                <button
+                  onClick={() => handleChatClick(post._id)}
+                  style={{ background: "none", border: "none", cursor: "pointer" }}
+                >
+                  <FaEnvelope /> Chat
+                </button>
+
+                {/* Love Button */}
                 <button
                   style={{
                     background: "none",
@@ -257,6 +303,11 @@ const PostFeed = ({ isLoggedIn }) => {
           <p>No posts available in this category.</p>
         )}
       </div>
+
+      {/* Show Chat if chat is triggered */}
+      {showChat && selectedPost && (
+        <ChatMessages postId={selectedPost} closeChat={() => setShowChat(false)} />
+      )}
     </div>
   );
 };
