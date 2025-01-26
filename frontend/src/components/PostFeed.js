@@ -1,7 +1,7 @@
-// PostFeed.js
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { FaComment, FaHeart } from "react-icons/fa";
+import { FaComment, FaHeart, FaEnvelope } from "react-icons/fa";
+//import ChatMessages from "./ChatMessages"; // Import ChatMessages component
 
 const PostFeed = ({ isLoggedIn }) => {
   const [posts, setPosts] = useState([]);
@@ -11,12 +11,37 @@ const PostFeed = ({ isLoggedIn }) => {
   const [commentingPostId, setCommentingPostId] = useState(null);
   const [lovedPosts, setLovedPosts] = useState({});
   const [viewMoreComments, setViewMoreComments] = useState({});
+  //const [showChat, setShowChat] = useState(false);
+  const [selectedPostId, setSelectedPostId] = useState(null);
 
+  // Fetch posts from the backend
   useEffect(() => {
     fetchPosts();
   }, [category]);
 
-  
+  const fetchPosts = async () => {
+    try {
+      const response = await axios.get("http://localhost:4000/api/v1/posts");
+      const allPosts = response.data;
+
+      // Filter posts by category
+      const filteredPosts =
+        category === "All"
+          ? allPosts
+          : allPosts.filter((post) => post.category === category);
+
+      setPosts(filteredPosts);
+
+      // Initialize comments state for each post
+      const initialComments = {};
+      filteredPosts.forEach((post) => {
+        initialComments[post._id] = post.comments || [];
+      });
+      setComments(initialComments);
+    } catch (error) {
+      console.error("Error fetching posts:", error);
+    }
+  };
 
   const handleCategoryChange = (selectedCategory) => {
     setCategory(selectedCategory);
@@ -31,6 +56,7 @@ const PostFeed = ({ isLoggedIn }) => {
         createdAt: new Date().toISOString(),
       };
 
+      // Optimistically update comments UI
       setComments((prevComments) => ({
         ...prevComments,
         [postId]: [...(prevComments[postId] || []), tempComment],
@@ -38,12 +64,13 @@ const PostFeed = ({ isLoggedIn }) => {
 
       try {
         const response = await axios.post(
-
           `http://localhost:4000/api/v1/posts/${postId}/comments`,
           { comment: commentText }
         );
 
         const savedComment = response.data;
+
+        // Replace temporary comment with the saved comment
         setComments((prevComments) => ({
           ...prevComments,
           [postId]: prevComments[postId].map((c) =>
@@ -57,37 +84,7 @@ const PostFeed = ({ isLoggedIn }) => {
       setNewComment((prev) => ({ ...prev, [postId]: "" }));
       setCommentingPostId(null);
     }
-
-    
   };
-
-  const fetchPosts = async () => {
-    try {
-      const response = await axios.get("http://localhost:4000/api/v1/posts");
-      const allPosts = response.data;
-      const filteredPosts =
-        category === "All"
-          ? allPosts
-          : allPosts.filter((post) => post.category === category);
-
-      setPosts(filteredPosts);
-
-      const initialComments = {};
-      filteredPosts.forEach((post) => {
-        initialComments[post._id] = post.comments || [];
-      });
-      setComments(initialComments);
-    } catch (error) {
-      console.error("Error fetching posts:", error);
-    }
-  };
-
-
-
-  const handleCommentButtonClick = (postId) => {
-    setCommentingPostId(postId);
-  };
-
 
   const handleInputChange = (postId, value) => {
     setNewComment((prev) => ({
@@ -95,8 +92,6 @@ const PostFeed = ({ isLoggedIn }) => {
       [postId]: value,
     }));
   };
-
-  
 
   const handleHeartClick = (postId) => {
     setLovedPosts((prevLovedPosts) => ({
@@ -111,6 +106,11 @@ const PostFeed = ({ isLoggedIn }) => {
       [postId]: true,
     }));
   };
+
+  // const handleChatButtonClick = (postId) => {
+  //   setSelectedPostId(postId);
+  //   setShowChat(true);
+  // };
 
   return (
     <div style={{ padding: "20px" }}>
@@ -148,15 +148,12 @@ const PostFeed = ({ isLoggedIn }) => {
                 padding: "20px",
                 marginBottom: "10px",
                 borderRadius: "5px",
-                display: "flex",
-                flexDirection: "column",
-                justifyContent: "space-between",
               }}
             >
               <h3>{post.title}</h3>
               <p>{post.description}</p>
 
-              {/* Comment Section */}
+              {/* Action Buttons */}
               <div
                 style={{
                   display: "flex",
@@ -164,59 +161,58 @@ const PostFeed = ({ isLoggedIn }) => {
                   marginTop: "10px",
                 }}
               >
-                {/* Comment Button */}
                 <button
-                  style={{
-                    background: "none",
-                    border: "none",
-                    cursor: "pointer",
-                  }}
-                  onClick={() => handleCommentButtonClick(post._id)}
+                  onClick={() => setCommentingPostId(post._id)}
+                  style={{ background: "none", border: "none", cursor: "pointer" }}
                 >
                   <FaComment /> Comment
                 </button>
-
-                {/* Love Button moved to the opposite side */}
                 <button
+                  //onClick={() => handleChatButtonClick(post._id)}
+                  style={{ background: "none", border: "none", cursor: "pointer" }}
+                >
+                  <FaEnvelope /> Chat
+                </button>
+                <button
+                  onClick={() => handleHeartClick(post._id)}
                   style={{
                     background: "none",
                     border: "none",
                     cursor: "pointer",
                     color: lovedPosts[post._id] ? "red" : "black",
                   }}
-                  onClick={() => handleHeartClick(post._id)}
                 >
                   <FaHeart /> Love
                 </button>
               </div>
 
-              {/* Comments */}
+              {/* Comments Section */}
               <div>
                 {comments[post._id] && comments[post._id].length > 0 ? (
                   <>
-                    {/* Show only first 2 comments initially */}
-                    {(viewMoreComments[post._id] ? comments[post._id] : comments[post._id].slice(0, 2)).map(
-                      (comment, index) => (
-                        <div key={index}>
-                          <p>{comment.comment}</p>
-                        </div>
-                      )
-                    )}
+                    {(viewMoreComments[post._id]
+                      ? comments[post._id]
+                      : comments[post._id].slice(0, 2)
+                    ).map((comment, index) => (
+                      <div key={index}>
+                        <p>{comment.comment}</p>
+                      </div>
+                    ))}
 
-                    {/* "View More" Button if more than 2 comments */}
-                    {comments[post._id].length > 2 && !viewMoreComments[post._id] && (
-                      <button
-                        onClick={() => handleViewMoreClick(post._id)}
-                        style={{
-                          background: "none",
-                          border: "none",
-                          color: "#007BFF",
-                          cursor: "pointer",
-                        }}
-                      >
-                        View More Comments
-                      </button>
-                    )}
+                    {comments[post._id].length > 2 &&
+                      !viewMoreComments[post._id] && (
+                        <button
+                          onClick={() => handleViewMoreClick(post._id)}
+                          style={{
+                            background: "none",
+                            border: "none",
+                            color: "#007BFF",
+                            cursor: "pointer",
+                          }}
+                        >
+                          View More Comments
+                        </button>
+                      )}
                   </>
                 ) : (
                   <p>No comments yet.</p>
@@ -258,6 +254,11 @@ const PostFeed = ({ isLoggedIn }) => {
           <p>No posts available in this category.</p>
         )}
       </div>
+
+      {/* Chat Component
+      {showChat && selectedPostId && (
+        <ChatMessages postId={selectedPostId} closeChat={() => setShowChat(false)} />
+      )} */}
     </div>
   );
 };
