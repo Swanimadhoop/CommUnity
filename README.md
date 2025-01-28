@@ -10,6 +10,9 @@ Member 3: Ganga Kailas -[CUSAT]
 Hosted Project Link
 https://comm-unity-frontend.vercel.app/
 
+App Demo Video
+https://drive.google.com/file/d/1z4QM19qwIpmPk4xZti7KfmJVPBSBY-A_/view?usp=sharing
+
 Project Description
 CommUnity is a social platform designed to connect individuals within local communities. It allows users to create profiles, share posts, join discussions, and engage with others based on common interests. The app leverages real-time communication features, providing seamless interactions and building stronger local connections.
 
